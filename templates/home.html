@@ -1,34 +1,502 @@
-<h1>Hello User</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boston House Price Prediction</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --background-color: #f0f9ff;
+            --card-color: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --input-background: #f8fafc;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --info-color: #0ea5e9;
+        }
 
-<body>
-    <div class="login">
-        <h1>Boston House Price Prediction</h1>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-        <!-- Main Input For Receiving Query to our ML -->
-        <form action="{{ url_for('predict') }}" method="post">
-            <input type="text" name="CRIM" placeholder="Crime Rate in Municipality" required /><br>
-            <input type="text" name="ZN" placeholder="Zoning for Large Lots" required /><br>
-            <input type="text" name="INDUS" placeholder="Industrial Proportion of Land" required /><br>
-            <input type="text" name="CHAS" placeholder="Charles River Proximity Indicator" required /><br>
-            <input type="text" name="NOX" placeholder="Nitrogen Oxides Concentration" required /><br>
-            <input type="text" name="RM" placeholder="Rooms per Dwelling" required /><br>
-            <input type="text" name="Age" placeholder="Age of Housing Units" required /><br>
-            <input type="text" name="DIS" placeholder="Distance to Employment Centers" required /><br>
-            <input type="text" name="RAD" placeholder="Accessibility to Radial Highway" required /><br>
-            <input type="text" name="TAX" placeholder="Property Tax Rate per $10,000" required /><br>
-            <input type="text" name="PTRATIO" placeholder="Pupil-Teacher Ratio in Schools" required /><br>
-            <input type="text" name="B" placeholder="Proportion of Black Residents" required /><br>
-            <input type="text" name="LSTAT" placeholder="Lower-Status Population Percentage" required /><br>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
 
-            <button type="submit">Predict</button>
-        </form>
+        .container {
+            background: var(--card-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
 
-        <br><br>
+        .header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
 
-        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .form-container {
+            padding: 25px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            background-color: var(--input-background);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        input::placeholder {
+            color: #94a3b8;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background-color: rgba(16, 185, 129, 0.1);
+            text-align: center;
+        }
+
+        .result h3 {
+            color: var(--success-color);
+            font-size: 1.2rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 15px;
+            background: #f1f5f9;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .info-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--info-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+
+        .info-button:hover {
+            transform: scale(1.1);
+            background-color: #0284c7;
+        }
+
+        .info-popup {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 100%;
+            height: 450px;
+            max-width: 350px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            z-index: 99;
+            opacity: 0;
+            transform: translateY(20px);
+            visibility: hidden;
+            transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
+            overflow-y: auto;
+        }
+
+        .info-popup.active {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .info-popup h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-popup ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .info-popup li {
+            margin-bottom: 8px;
+        }
+
+        .info-popup p {
+            margin-bottom: 10px;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 20px;
+            width: auto;
+            max-width: none;
+            padding: 0;
+            margin-left: 10px;
+        }
+
+        .close-button:hover {
+            color: #334155;
+            background: none;
+        }
+
+        .field-explanation {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .field-explanation h4 {
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .field-explanation dl {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 8px;
+        }
+
+        .field-explanation dt {
+            font-weight: 600;
+        }
+
+        .field-explanation dd {
+            margin-left: 0;
+            color: #475569;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
             
+            .container {
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+
+            .info-popup {
+                right: 50%;
+                transform: translateX(50%) translateY(20px);
+                max-width: 90%;
+            }
+
+            .info-popup.active {
+                transform: translateX(50%) translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .form-container {
+                padding: 15px;
+            }
+            
+            input {
+                padding: 10px;
+            }
+            
+            button {
+                padding: 10px 20px;
+            }
+
+            .info-button {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Form --> 
+    <div class="container">
+        <div class="header">
+            <h1>Boston House Price Prediction</h1>
+            <p>Enter property details to get an estimated price</p>
+        </div>
         
+        <div class="form-container">
+            <form action="{{ url_for('predict') }}" method="post">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="CRIM">Crime Rate</label>
+                        <input type="number" step="0.01" min="0" max="1" id="CRIM" name="CRIM" placeholder="Per capita crime rate" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ZN">Residential Land Zoning</label>
+                        <input type="number" step="0.01" min="0" max="20" id="ZN" name="ZN" placeholder="% of residential land zoned" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="INDUS">Non-Retail Business</label>
+                        <input type="number" step="0.01" min="0" max="10" id="INDUS" name="INDUS" placeholder="% of non-retail business acres" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="CHAS">Charles River</label>
+                        <input type="number" id="CHAS" name="CHAS" placeholder="1 if tract bounds river; 0 otherwise" min="0" max="2" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="NOX">Nitric Oxides</label>
+                        <input type="number" step="0.01" min="0" max="1" id="NOX" name="NOX" placeholder="Concentration (parts per 10M)" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="RM">Average Rooms</label>
+                        <input type="number" step="0.01" min="0" max="10" id="RM" name="RM" placeholder="Average number of rooms" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="Age">Age of Building</label>
+                        <input type="number" step="0.01" min="0" max="100" id="Age" name="Age" placeholder="% of units built before 1940" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="DIS">Employment Distance</label>
+                        <input type="number" step="0.01" min="0" max="10" id="DIS" name="DIS" placeholder="Distance to employment centers" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="RAD">Highway Access</label>
+                        <input type="number" id="RAD" min="0" max="7" name="RAD" placeholder="Index of accessibility" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="TAX">Property Tax</label>
+                        <input type="number" step="0.01" min="200" max="300" id="TAX" name="TAX" placeholder="$10,000 tax rate value" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="PTRATIO">Pupil-Teacher Ratio</label>
+                        <input type="number" step="0.01" min="10" max="20" id="PTRATIO" name="PTRATIO" placeholder="Ratio by town" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="B">Black Population</label>
+                        <input type="number" step="0.01" min="390" max="400" id="B" name="B" placeholder="1000(Bk - 0.63)^2" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="LSTAT">Lower Status</label>
+                        <input type="number" step="0.01" min="0" max="12" id="LSTAT" name="LSTAT" placeholder="% lower status population" required />
+                    </div>
+                </div>
+                
+                <div class="button-container">
+                    <button type="submit">Predict House Price</button>
+                </div>
+            </form>
+            
+            {% if prediction_text %}
+            <div class="result">
+                <h3>{{ prediction_text }}</h3>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <p>Based on the Boston Housing Dataset</p>
+        </div>
     </div>
-    <h3>{{ prediction_text }}</h3>
+
+    <!-- Info Button -->
+    <div class="info-button" id="infoButton">i</div>
+
+    <div class="info-popup" id="infoPopup">
+        <h3>
+            How to Use This Model
+            <button class="close-button" id="closePopup">×</button>
+        </h3>
+        
+        <p>This application uses machine learning to predict Boston house prices based on the classic Boston Housing Dataset. Follow these steps:</p>
+        
+        <ul>
+            <li><strong>Enter all required data</strong> in each field using appropriate values (see field descriptions below)</li>
+            <li><strong>Click "Predict House Price"</strong> to get an estimated house price based on your inputs</li>
+            <li><strong>Review the result</strong> that appears below the form</li>
+        </ul>
+        
+        <p>For accurate predictions, try to use realistic values that match Boston's housing characteristics.</p>
+        
+        <div class="field-explanation">
+            <h4>Field Descriptions:</h4>
+            <dl>
+                <dt>Crime Rate</dt>
+                <dd>Per capita crime rate by town (typically 0.01-90)</dd>
+                
+                <dt>Residential Land</dt>
+                <dd>Proportion of residential land zoned for lots over 25,000 sq.ft (0-100)</dd>
+                
+                <dt>Non-Retail Business</dt>
+                <dd>Proportion of non-retail business acres per town (0-30)</dd>
+                
+                <dt>Charles River</dt>
+                <dd>1 if tract bounds Charles River; 0 otherwise</dd>
+                
+                <dt>Nitric Oxides</dt>
+                <dd>Concentration in parts per 10 million (0.4-0.9)</dd>
+                
+                <dt>Average Rooms</dt>
+                <dd>Average number of rooms per dwelling (3-9)</dd>
+                
+                <dt>Age of Building</dt>
+                <dd>Proportion of owner-occupied units built before 1940 (0-100)</dd>
+                
+                <dt>Employment Distance</dt>
+                <dd>Weighted distances to employment centers (1-10)</dd>
+                
+                <dt>Highway Access</dt>
+                <dd>Index of accessibility to radial highways (1-24)</dd>
+                
+                <dt>Property Tax</dt>
+                <dd>Property tax rate per $10,000 (180-720)</dd>
+                
+                <dt>Pupil-Teacher Ratio</dt>
+                <dd>Pupil-teacher ratio by town (12-22)</dd>
+                
+                <dt>Black Population</dt>
+                <dd>1000(Bk - 0.63)² where Bk is proportion of black residents (0-400)</dd>
+                
+                <dt>Lower Status</dt>
+                <dd>Percentage of lower status population (1-40)</dd>
+            </dl>
+        </div>
+    </div>
+
+    <script>
+        const infoButton = document.getElementById('infoButton');
+        const infoPopup = document.getElementById('infoPopup');
+        const closePopup = document.getElementById('closePopup');
+        
+        infoButton.addEventListener('click', () => {
+            infoPopup.classList.toggle('active');
+        });
+        
+        closePopup.addEventListener('click', () => {
+            infoPopup.classList.remove('active');
+        });
+        
+        document.addEventListener('click', (event) => {
+            if (!infoPopup.contains(event.target) && event.target !== infoButton) {
+                infoPopup.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>
